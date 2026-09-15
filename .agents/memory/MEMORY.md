@@ -1,0 +1,1 @@
+- [Pl@ntNet proxy boundary](plantnet-proxy.md) — keep provider credentials and multipart formatting server-side.

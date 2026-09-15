@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: analysis
+    description: Plant health analysis operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /plant-analysis:
+    post:
+      operationId: analyzePlant
+      tags: [analysis]
+      summary: Analyze a plant photograph
+      description: Sends a plant photograph to Pl@ntNet for disease and pest identification.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlantAnalysisInput"
+      responses:
+        "200":
+          description: Top five possible plant health issues
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PlantAnalysisResult"
+        "400":
+          description: Invalid image or plant part
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "503":
+          description: Pl@ntNet API key is not configured
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Pl@ntNet API request failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +74,48 @@ components:
           type: string
       required:
         - status
+    PlantAnalysisInput:
+      type: object
+      properties:
+        imageData:
+          type: string
+          description: Data URL containing a JPG or PNG photograph of a plant
+        fileName:
+          type: string
+          description: Original file name used to validate the image type
+        organ:
+          type: string
+          enum: [leaf, flower, fruit, bark, auto]
+          default: auto
+      required:
+        - imageData
+    PlantAnalysisResult:
+      type: object
+      properties:
+        name:
+          type: string
+        eppoCode:
+          type: ["string", "null"]
+        matchPercentage:
+          type: number
+        imageUrl:
+          type: ["string", "null"]
+        imageAuthor:
+          type: ["string", "null"]
+        imageLicense:
+          type: ["string", "null"]
+      required:
+        - name
+        - eppoCode
+        - matchPercentage
+        - imageUrl
+        - imageAuthor
+        - imageLicense
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
 

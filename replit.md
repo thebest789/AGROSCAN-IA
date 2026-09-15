@@ -1,6 +1,6 @@
-# [Project name]
+# AgroScan IA
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+Aplicación web en español para identificar enfermedades y plagas de plantas a partir de fotografías mediante Pl@ntNet.
 
 ## Run & Operate
 
@@ -9,7 +9,7 @@ _Replace the heading above with the project's name, and this line with one sente
 - `pnpm run build` — typecheck + build all packages
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+- Required env: `PLANTNET_API_KEY` — Pl@ntNet API key, used only by the Express server
 
 ## Stack
 
@@ -22,23 +22,29 @@ _Replace the heading above with the project's name, and this line with one sente
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/agroscan-ia/src/App.tsx` — flujo de carga, vista previa, selección de órgano y resultados.
+- `artifacts/agroscan-ia/src/index.css` — tokens y estilos visuales de AgroScan IA.
+- `artifacts/api-server/src/routes/plant-analysis.ts` — proxy seguro hacia Pl@ntNet.
+- `lib/api-spec/openapi.yaml` — contrato fuente para el análisis de plantas.
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- La API key de Pl@ntNet solo se lee en el servidor y nunca se expone al navegador.
+- El frontend envía una data URL JSON al backend; el backend la convierte a `Blob` y realiza la petición multipart a Pl@ntNet.
+- La interfaz muestra resultados parciales sin inventar datos cuando Pl@ntNet no devuelve imágenes o metadatos.
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+AgroScan IA permite cargar o tomar una foto JPG/PNG, elegir la parte de la planta que se observa y consultar hasta cinco posibles enfermedades o plagas con nombre, código EPPO, coincidencia y atribución de imágenes.
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Interfaz sencilla en español con colores verde, blanco y beige.
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Sin `PLANTNET_API_KEY`, el endpoint devuelve un 503 explicativo y la interfaz mantiene el flujo usable.
+- El proxy usa los parámetros `lang=es`, `include-related-images=true` y `nb-results=5`.
 
 ## Pointers
 
