@@ -97,7 +97,7 @@ router.post("/plant-analysis", async (req, res): Promise<void> => {
   const imageBuffer = new ArrayBuffer(decoded.bytes.byteLength);
   new Uint8Array(imageBuffer).set(decoded.bytes);
   formData.append(
-    "image",
+    "images",
     new Blob([imageBuffer], { type: decoded.mimeType }),
     parsed.data.fileName ?? "plant-image",
   );
