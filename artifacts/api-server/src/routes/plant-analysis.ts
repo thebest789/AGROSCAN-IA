@@ -10,27 +10,27 @@ const PLANTNET_ENDPOINT =
   "https://my-api.plantnet.org/v2/diseases/identify";
 
 type PlantNetImage = {
-  url?: string;
+  url?: string | { o?: string; m?: string; s?: string };
   organ?: string;
   author?: string;
   license_name?: string;
   license?: string;
 };
 
-type PlantNetDisease = {
-  scientific_name?: string;
-  common_names?: string[];
-  eppo_code?: string;
-  eppoCode?: string;
-};
-
 type PlantNetResult = {
+  name?: string;
+  description?: string;
   score?: number;
-  disease?: PlantNetDisease;
   images?: PlantNetImage[];
 };
 
-function decodeDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } | null {
+type PlantNetResponse = {
+  results?: PlantNetResult[];
+};
+
+function decodeDataUrl(
+  dataUrl: string,
+): { mimeType: string; bytes: Buffer } | null {
   const match = dataUrl.match(/^data:(image\/(?:jpeg|png));base64,([\s\S]+)$/i);
   if (!match) {
     return null;
@@ -46,20 +46,24 @@ function decodeDataUrl(dataUrl: string): { mimeType: string; bytes: Buffer } | n
   }
 }
 
-function getDisplayName(disease: PlantNetDisease | undefined): string {
-  return disease?.common_names?.[0] ?? disease?.scientific_name ?? "Resultado sin nombre";
+function getImageUrl(image: PlantNetImage | undefined): string | null {
+  if (!image?.url) return null;
+  if (typeof image.url === "string") return image.url;
+  return image.url.m ?? image.url.s ?? image.url.o ?? null;
 }
 
 function normalizeResults(payload: unknown) {
-  const results = Array.isArray(payload) ? payload : [];
+  const results = Array.isArray(payload)
+    ? payload
+    : (payload as PlantNetResponse | null)?.results ?? [];
   return results.slice(0, 5).map((item: PlantNetResult) => {
     const image = item.images?.[0];
     const score = typeof item.score === "number" ? item.score : 0;
     return {
-      name: getDisplayName(item.disease),
-      eppoCode: item.disease?.eppo_code ?? item.disease?.eppoCode ?? null,
+      name: item.description ?? item.name ?? "Resultado sin nombre",
+      eppoCode: item.name ?? null,
       matchPercentage: Math.round(score * 1000) / 10,
-      imageUrl: image?.url ?? null,
+      imageUrl: getImageUrl(image),
       imageAuthor: image?.author ?? null,
       imageLicense: image?.license_name ?? image?.license ?? null,
     };
@@ -93,7 +97,7 @@ router.post("/plant-analysis", async (req, res): Promise<void> => {
   const imageBuffer = new ArrayBuffer(decoded.bytes.byteLength);
   new Uint8Array(imageBuffer).set(decoded.bytes);
   formData.append(
-    "images",
+    "image",
     new Blob([imageBuffer], { type: decoded.mimeType }),
     parsed.data.fileName ?? "plant-image",
   );
