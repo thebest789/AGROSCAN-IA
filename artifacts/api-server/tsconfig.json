@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "incremental": false,
+    "lib": ["es2022", "DOM", "DOM.Iterable"],
     "outDir": "dist",
     "types": ["node"]
   },
