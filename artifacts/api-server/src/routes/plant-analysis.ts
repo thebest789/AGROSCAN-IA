@@ -2,7 +2,7 @@ import { Router, type IRouter } from "express";
 import {
   AnalyzePlantBody,
   AnalyzePlantResponse,
-} from "@workspace/api-zod";
+} from "../lib/api-schemas.js";
 
 const router: IRouter = Router();
 
