@@ -250,7 +250,17 @@ function Home() {
             <div className="mb-6"><p className="mb-2 text-[0.68rem] font-bold tracking-[0.14em] text-leaf uppercase">02 · Enfoque</p><h2 className="font-display text-[1.6rem] font-medium tracking-[-0.035em]">Señala dónde mirar</h2></div>
             <OrganPicker value={organ} onChange={setOrgan} />
             <button type="button" onClick={runAnalysis} disabled={!preview || analyzePlant.isPending} className="primary-action mt-7 flex w-full items-center justify-center gap-2.5 rounded-xl bg-leaf px-5 py-4 text-sm font-bold text-cream transition-all duration-300 hover:-translate-y-0.5 hover:bg-forest disabled:cursor-not-allowed disabled:opacity-45 disabled:hover:translate-y-0" data-testid="button-analyze-plant">
-              {analyzePlant.isPending ? <><LoaderCircle size={17} className="animate-spin" /> Analizando planta…</> : <><Sparkles size={17} /> Analizar planta <ArrowUpRight size={16} /></>}
+              <span aria-hidden="true">
+  {analyzePlant.isPending
+    ? <LoaderCircle size={17} className="animate-spin" />
+    : <Sparkles size={17} />}
+</span>
+<span>
+  {analyzePlant.isPending ? 'Analizando planta…' : 'Analizar planta'}
+</span>
+<span aria-hidden="true">
+  {!analyzePlant.isPending && <ArrowUpRight size={16} />}
+</span>
             </button>
             <p className="mt-3 text-center text-[0.69rem] leading-5 text-muted-olive">Solo se envía la imagen necesaria para esta lectura.</p>
           </section>
