@@ -1,3 +1,4 @@
+import AgentesPanel from "./components/AgentesPanel";
 import { useCallback, useRef, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useAnalyzePlant } from '@workspace/api-client-react';
@@ -268,6 +269,12 @@ function Home() {
           <section className="animate-rise animation-delay-2" aria-labelledby="results-title">
             <div className="mb-5 flex items-end justify-between gap-4"><div><p className="mb-2 text-[0.68rem] font-bold tracking-[0.14em] text-leaf uppercase">Lectura</p><h2 id="results-title" className="font-display text-[1.8rem] font-medium tracking-[-0.04em]">Posibilidades cercanas</h2></div>{results.length > 0 && <span className="mb-1 text-sm text-muted-olive">{results.length}/5</span>}</div>
             <ResultsPanel results={results} isPending={analyzePlant.isPending} error={analyzePlant.error} onRetry={runAnalysis} />
+            {results.length > 0 && !analyzePlant.isPending && !analyzePlant.error && (
+              <AgentesPanel
+                key={JSON.stringify(results)}
+                resultados={results}
+              />
+            )}
             <div className="mt-6 flex gap-3 rounded-2xl border border-sage/45 bg-sage/18 p-4 text-muted-olive"><span className="mt-0.5 shrink-0 text-moss"><ShieldCheck size={16} /></span><p className="text-[0.73rem] leading-5"><strong className="font-semibold text-forest">Una guía, no un diagnóstico.</strong> Los resultados son orientativos y no sustituyen la evaluación de un especialista.</p></div>
           </section>
         </div>
@@ -295,3 +302,4 @@ function App() {
 }
 
 export default App;
+
