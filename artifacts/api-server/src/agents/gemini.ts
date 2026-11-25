@@ -1,3 +1,57 @@
+async function fetchConReintentos(
+  url: string,
+  opciones: RequestInit,
+): Promise<Response> {
+  const estadosTemporales = new Set([408, 500, 502, 503, 504]);
+  const inicio = Date.now();
+
+  for (let intento = 0; intento < 3; intento++) {
+    opciones.signal?.throwIfAborted();
+    const respuesta = await fetch(url, opciones);
+    if (respuesta.ok) return respuesta;
+
+    const puedeReintentar =
+      estadosTemporales.has(respuesta.status) && intento < 2;
+
+    if (!puedeReintentar) {
+      await respuesta.body?.cancel().catch(() => undefined);
+      return respuesta;
+    }
+
+    const cabecera = respuesta.headers.get("retry-after");
+    let esperaServidor = 0;
+
+    if (cabecera) {
+      const segundos = Number(cabecera);
+      esperaServidor = Number.isFinite(segundos)
+        ? Math.max(0, segundos * 1000)
+        : Math.max(0, Date.parse(cabecera) - Date.now());
+
+      if (!Number.isFinite(esperaServidor)) esperaServidor = 0;
+    }
+
+    const pausa = Math.max(
+      1000 * (2 ** intento) + Math.floor(Math.random() * 400),
+      esperaServidor,
+    );
+
+    await respuesta.body?.cancel().catch(() => undefined);
+
+    if (pausa + 1000 >= 45000 - (Date.now() - inicio)) {
+      return respuesta;
+    }
+
+    console.warn(
+      "[Gemini] HTTP " + respuesta.status +
+      ". Reintento " + (intento + 1) + "/2 en " + pausa + " ms.",
+    );
+
+    await new Promise<void>((resolver) => setTimeout(resolver, pausa));
+  }
+
+  throw new Error("No se pudo completar la consulta a Gemini.");
+}
+
 type GeminiResponse = {
   candidates?: Array<{
     content?: {
@@ -24,7 +78,7 @@ export async function consultarGemini(
   console.info("[Gemini] Iniciando: " + agente);
 
   try {
-    const respuesta = await fetch(
+    const respuesta = await fetchConReintentos(
       `https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent`,
       {
         method: "POST",
@@ -73,3 +127,4 @@ export async function consultarGemini(
     throw new Error("Fallo en " + agente + ": " + detalle);
   }
 }
+
