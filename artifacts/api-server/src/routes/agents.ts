@@ -22,4 +22,17 @@ router.post("/agents/check", async (req, res): Promise<void> => {
   }
 });
 
+router.get("/agents/status", (_req, res) => {
+  const caracteres = process.env.AGENTS_SIGNING_KEY?.trim().length ?? 0;
+
+  res.set("Cache-Control", "no-store");
+  res.json({
+    entorno: process.env.VERCEL_ENV ?? "local",
+    version: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? "local",
+    firmaCaracteres: caracteres,
+    firmaConfigurada: caracteres >= 32,
+  });
+});
+
 export default router;
+
